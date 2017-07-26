@@ -1,3 +1,5 @@
+import json
+import os
 import numpy as np
 import tensorflow as tf
 
@@ -23,6 +25,14 @@ def train_input_fn():
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.DEBUG)
+    tf_config = json.loads(os.environ.get("TF_CONFIG", "{}"))
+    server = tf.train.Server(
+        tf_config["cluster"],
+        job_name=tf_config["task"]["type"],
+        task_index=tf_config["task"]["index"]
+    )
+    if tf_config["task"]["type"] is "ps":
+        server.join()
     clf = tf.estimator.Estimator(
         model_fn=model_fn,
         model_dir="outputs",
